@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Sample 10s</title>
+<style>
+  @font-face { font-family: "Local Bold"; src: url("assets/LiberationSans-Bold.ttf"); }
+  html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #101114; color: #fff; font-family: "Local Bold", sans-serif; }
+  .stage { position: relative; width: 100vw; height: 100vh; }
+  h1 { position: absolute; top: 4vmin; left: 0; right: 0; margin: 0; text-align: center; font-size: 5.5vmin; letter-spacing: .3vmin;
+       animation: titleIn 1.2s ease-out both; }
+  @keyframes titleIn { from { opacity: 0; transform: translateY(-4vmin); } to { opacity: 1; transform: none; } }
+
+  /* 1. CSS animation (10 detik) */
+  .css-box { position: absolute; left: 6vmin; top: 18vmin; width: 14vmin; height: 14vmin; border-radius: 3vmin; background: #7957ff;
+             animation: slide 10s linear both, spin 2.5s linear infinite; }
+  @keyframes slide { from { left: 6vmin; } to { left: calc(100vw - 20vmin); } }
+  @keyframes spin { to { rotate: 360deg; } }
+  .label { position: absolute; font-size: 2.4vmin; color: #a0a4ae; }
+
+  /* 2. SVG SMIL */
+  svg.smil { position: absolute; left: 6vmin; top: 38vmin; width: 28vmin; height: 28vmin; }
+
+  /* 3. Canvas via renderFrame */
+  canvas { position: absolute; left: 38vmin; top: 38vmin; width: 28vmin; height: 28vmin; }
+
+  /* 4. JS animation via requestAnimationFrame + performance.now */
+  .js-dot { position: absolute; top: 44vmin; width: 6vmin; height: 6vmin; border-radius: 50%; background: #58d68d; }
+
+  img.logo { position: absolute; right: 6vmin; top: 38vmin; width: 22vmin; height: 22vmin; animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 50% { transform: scale(1.15); } }
+
+  .bar { position: absolute; left: 6vmin; right: 6vmin; bottom: 8vmin; height: 1.6vmin; background: #1b1d22; border-radius: 1vmin; overflow: hidden; }
+  .bar > i { display: block; height: 100%; width: 100%; background: #7957ff; transform-origin: left; animation: fill 10s linear both; }
+  @keyframes fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  #clock { position: absolute; bottom: 12vmin; left: 0; right: 0; text-align: center; font-size: 3vmin; }
+</style>
+</head>
+<body>
+<div class="stage">
+  <h1>HTML Render Studio — Sample 10s</h1>
+
+  <div class="css-box"></div>
+  <div class="label" style="left:6vmin;top:15vmin">CSS animation</div>
+
+  <svg class="smil" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="10" fill="#ffb84d">
+      <animate attributeName="r" values="10;40;10" dur="4s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="50" cy="50" r="45" fill="none" stroke="#ffb84d" stroke-width="2" stroke-dasharray="6 6">
+      <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="5s" repeatCount="indefinite"/>
+    </circle>
+  </svg>
+  <div class="label" style="left:6vmin;top:35vmin">SVG animation (SMIL)</div>
+
+  <canvas id="c"></canvas>
+  <div class="label" style="left:38vmin;top:35vmin">Canvas (renderFrame)</div>
+
+  <div class="js-dot" id="dot"></div>
+  <div class="label" style="left:6vmin;top:70vmin">JS animation (requestAnimationFrame)</div>
+
+  <img class="logo" src="assets/logo.png" alt="logo">
+
+  <div id="clock">0.00 s</div>
+  <div class="bar"><i></i></div>
+</div>
+
+<script>
+  // Kontrak durasi untuk Auto Detect.
+  window.renderDurationMs = 10000;
+
+  // 3. Canvas: gambar murni sebagai fungsi dari waktu. Dipanggil oleh aplikasi sebelum tiap frame di-capture.
+  var canvas = document.getElementById('c');
+  var ctx = canvas.getContext('2d');
+  function sizeCanvas() {
+    var r = canvas.getBoundingClientRect();
+    canvas.width = Math.max(2, Math.round(r.width));
+    canvas.height = Math.max(2, Math.round(r.height));
+  }
+  sizeCanvas();
+  window.renderFrame = function (timeMs) {
+    var w = canvas.width, h = canvas.height, t = timeMs / 1000;
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = '#1b1d22';
+    ctx.fillRect(0, 0, w, h);
+    ctx.save();
+    ctx.translate(w / 2, h / 2);
+    for (var i = 0; i < 8; i++) {
+      var a = t * 1.6 + i * Math.PI / 4;
+      ctx.fillStyle = 'hsl(' + ((i * 45 + t * 60) % 360) + ',80%,60%)';
+      ctx.beginPath();
+      ctx.arc(Math.cos(a) * w * 0.3, Math.sin(a) * h * 0.3, w * 0.07, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  };
+  window.renderFrame(0);
+
+  // 4. JS: pakai timestamp dari requestAnimationFrame (waktu virtual saat render).
+  var dot = document.getElementById('dot');
+  var clock = document.getElementById('clock');
+  function loop(ts) {
+    var t = ts / 1000;
+    var travel = window.innerWidth * 0.55;
+    dot.style.left = (window.innerWidth * 0.06 + (Math.sin(t * 1.5) * 0.5 + 0.5) * travel) + 'px';
+    clock.textContent = t.toFixed(2) + ' s';
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+</script>
+</body>
+</html>
