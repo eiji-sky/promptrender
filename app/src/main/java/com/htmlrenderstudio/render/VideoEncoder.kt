@@ -59,7 +59,7 @@ class VideoEncoder(
             if (!caps.areSizeAndRateSupported(width, height, fps.toDouble())) {
                 throw EncoderException("Encoder perangkat tidak mendukung ${width}x$height pada $fps FPS. Coba FPS atau resolusi lebih rendah.")
             }
-            val raw = (width.toLong() * height * fps * 0.12).coerceIn(2_000_000L, 40_000_000L).toInt()
+            val raw = (width.toDouble() * height * fps * 0.12).coerceIn(2_000_000.0, 40_000_000.0).toInt()
             format.setInteger(MediaFormat.KEY_BIT_RATE, caps.bitrateRange.clamp(raw))
             format.setInteger(MediaFormat.KEY_FRAME_RATE, fps)
             format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1)
